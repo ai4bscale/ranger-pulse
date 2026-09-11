@@ -1,0 +1,8 @@
+# Default: everything needs a review from the project owner.
+# Update the username below once collaborators join.
+*       @your-github-username
+
+# The constitution and specs define the contract everything else follows —
+# changes here should never land silently.
+/.specify/   @your-github-username
+/specs/      @your-github-username

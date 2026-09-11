@@ -1,0 +1,60 @@
+# CI: runs on every push and every pull request.
+# Kept intentionally simple for the MVP slice — build, vet, test.
+# Cross-compilation and release packaging (goreleaser) come later,
+# once there's something worth releasing.
+
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+# Cancel older runs on the same branch/PR when new commits land,
+# so we don't waste Actions minutes on stale runs.
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.23'
+          cache: true
+
+      - name: Verify modules
+        run: go mod verify
+
+      - name: Vet (static analysis built into Go)
+        run: go vet ./...
+
+      - name: Build all binaries
+        run: go build ./...
+
+      - name: Run tests with race detector
+        run: go test -race -vet=off ./...
+
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.23'
+          cache: true
+
+      - name: golangci-lint
+        uses: golangci/golangci-lint-action@v6
+        with:
+          version: latest
